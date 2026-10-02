@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>ASTRA Smart Clinic — 24/7 Patient Triage & Booking Simulator</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🦷</text></svg>">
+  <style>
+    :root {
+      --wa-header: #075e54;
+      --wa-header-dark: #054c44;
+      --wa-bg: #efeae2;
+      --wa-incoming: #ffffff;
+      --wa-outgoing: #d9fdd3;
+      --wa-green: #25d366;
+      --wa-text: #111b21;
+      --wa-subtext: #667781;
+      --wa-accent: #008069;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+    body {
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      color: #f8fafc;
+    }
+    .header-banner {
+      text-align: center;
+      max-width: 580px;
+      margin-bottom: 16px;
+    }
+    .header-banner h1 {
+      font-size: 22px;
+      font-weight: 700;
+      color: #38bdf8;
+      margin-bottom: 6px;
+    }
+    .header-banner p {
+      font-size: 13.5px;
+      color: #94a3b8;
+      line-height: 1.45;
+    }
+    .phone-container {
+      width: 100%;
+      max-width: 410px;
+      height: 740px;
+      background: #090d16;
+      border-radius: 40px;
+      padding: 12px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7), 0 0 0 2px #334155;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+    .phone-screen {
+      width: 100%;
+      height: 100%;
+      background: var(--wa-bg);
+      border-radius: 30px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+    /* WhatsApp Header */
+    .wa-navbar {
+      background: var(--wa-header);
+      color: #fff;
+      padding: 10px 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+      z-index: 10;
+      min-height: 60px;
+    }
+    .avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      font-weight: bold;
+      color: var(--wa-header);
+      flex-shrink: 0;
+    }
+    .clinic-info {
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+    }
+    .clinic-title {
+      font-size: 14.5px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .clinic-title span:first-child {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .verified-badge {
+      color: #22c55e;
+      font-size: 13px;
+      flex-shrink: 0;
+    }
+    .status-text {
+      font-size: 11.5px;
+      color: #a7f3d0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .lang-toggle {
+      background: rgba(255, 255, 255, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      color: white;
+      padding: 5px 9px;
+      border-radius: 14px;
+      font-size: 11px;
+      cursor: pointer;
+      font-weight: 600;
+      flex-shrink: 0;
+      transition: background 0.15s ease;
+    }
+    .lang-toggle:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+    /* Chat Area */
+    .chat-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      background-image: radial-gradient(#d5cfc4 1px, transparent 1px);
+      background-size: 20px 20px;
+      scroll-behavior: smooth;
+    }
+    .message {
+      max-width: 86%;
+      padding: 9px 12px;
+      border-radius: 10px;
+      font-size: 13.5px;
+      line-height: 1.45;
+      position: relative;
+      box-shadow: 0 1px 1.5px rgba(0, 0, 0, 0.12);
+      word-wrap: break-word;
+      animation: fadeIn 0.22s ease-out;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .incoming {
+      background: var(--wa-incoming);
+      color: var(--wa-text);
+      align-self: flex-start;
+      border-top-left-radius: 2px;
+    }
+    .outgoing {
+      background: var(--wa-outgoing);
+      color: var(--wa-text);
+      align-self: flex-end;
+      border-top-right-radius: 2px;
+    }
+    .timestamp {
+      display: block;
+      text-align: right;
+      font-size: 10px;
+      color: var(--wa-subtext);
+      margin-top: 4px;
+    }
+    .options-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-top: 8px;
+    }
+    .option-btn {
+      background: #f0fdf4;
+      border: 1px solid #86efac;
+      color: #166534;
+      padding: 9px 11px;
+      border-radius: 8px;
+      font-size: 12.5px;
+      text-align: left;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.15s ease;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 40px;
+    }
+    .option-btn:hover, .option-btn:active {
+      background: #dcfce7;
+      border-color: #22c55e;
+      transform: translateX(2px);
+    }
+    .typing-indicator {
+      display: none;
+      align-self: flex-start;
+      background: #fff;
+      padding: 6px 12px;
+      border-radius: 12px;
+      box-shadow: 0 1px 1.5px rgba(0,0,0,0.1);
+      font-size: 11px;
+      color: var(--wa-subtext);
+      font-style: italic;
+    }
+    /* Front Desk Notification Card */
+    .lead-card {
+      background: #1e293b;
+      border: 1px solid #38bdf8;
+      border-radius: 10px;
+      padding: 10px;
+      color: #fff;
+      font-size: 11.5px;
+      margin-top: 8px;
+      line-height: 1.45;
+    }
+    .lead-card-title {
+      font-weight: bold;
+      color: #38bdf8;
+      margin-bottom: 5px;
+      display: flex;
+      justify-content: space-between;
+      border-bottom: 1px solid #334155;
+      padding-bottom: 3px;
+    }
+    /* Bottom Controls */
+    .footer-action {
+      background: #fff;
+      padding: 8px 12px;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      border-top: 1px solid #e2e8f0;
+      min-height: 46px;
+    }
+    .reset-btn {
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      padding: 6px 12px;
+      border-radius: 16px;
+      font-size: 11.5px;
+      font-weight: 600;
+      cursor: pointer;
+      color: #475569;
+      transition: background 0.15s ease;
+    }
+    .reset-btn:hover {
+      background: #e2e8f0;
+    }
+    .cta-card {
+      margin-top: 16px;
+      background: rgba(30, 41, 59, 0.85);
+      border: 1px solid #334155;
+      padding: 16px 20px;
+      border-radius: 16px;
+      max-width: 540px;
+      text-align: center;
+    }
+    .cta-card h3 {
+      color: #38bdf8;
+      font-size: 15px;
+      margin-bottom: 6px;
+    }
+    .cta-card p {
+      font-size: 12.5px;
+      color: #cbd5e1;
+      margin-bottom: 12px;
+      line-height: 1.45;
+    }
+    .cta-btn {
+      display: inline-block;
+      background: var(--wa-green);
+      color: #fff;
+      text-decoration: none;
+      padding: 10px 20px;
+      border-radius: 25px;
+      font-weight: 700;
+      font-size: 13.5px;
+      box-shadow: 0 4px 12px rgba(37, 211, 102, 0.4);
+      transition: transform 0.15s ease;
+    }
+    .cta-btn:hover {
+      transform: scale(1.02);
+    }
+
+    /* Mobile Native Viewport Adjustment */
+    @media (max-width: 480px) {
+      body {
+        padding: 0;
+        background: var(--wa-bg);
+      }
+      .header-banner, .cta-card {
+        padding: 12px 14px;
+        background: #0f172a;
+        border-radius: 0;
+        margin: 0;
+        max-width: 100%;
+      }
+      .header-banner h1 {
+        font-size: 18px;
+      }
+      .phone-container {
+        max-width: 100%;
+        height: auto;
+        min-height: 85vh;
+        border-radius: 0;
+        padding: 0;
+        box-shadow: none;
+        background: transparent;
+      }
+      .phone-screen {
+        border-radius: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header-banner">
+    <h1>ASTRA Smart Clinic Triage Simulator</h1>
+    <p>Live 24/7 automated patient qualification & booking flow. Tap options as a patient to experience real-time intake.</p>
+  </div>
+
+  <div class="phone-container">
+    <div class="phone-screen">
+      <!-- Navbar -->
+      <div class="wa-navbar">
+        <div class="avatar">🦷</div>
+        <div class="clinic-info">
+          <div class="clinic-title">
+            <span id="navClinicTitle">Focus Dental Care</span>
+            <span class="verified-badge">✓</span>
+          </div>
+          <div class="status-text" id="statusText">Dr. Ajay Krishna's 24/7 Assistant (Online)</div>
+        </div>
+        <button class="lang-toggle" onclick="toggleLanguage()" id="langBtn">తెలుగు / Eng</button>
+      </div>
+
+      <!-- Chat Body -->
+      <div class="chat-body" id="chatBody"></div>
+
+      <div class="typing-indicator" id="typingIndicator">
+        Clinic assistant is typing...
+      </div>
+
+      <!-- Bottom bar -->
+      <div class="footer-action">
+        <button class="reset-btn" onclick="initChat()">🔄 Restart Simulation</button>
+        <span style="font-size: 11px; color: #64748b; margin-left: auto;">Interactive Patient Demo</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="cta-card">
+    <h3 id="offerTitle">Introductory AI Patient Recovery & Booking Pack — ₹1,999 One-Time</h3>
+    <p id="offerDescription">The introductory package is ₹1,999 one-time for the agreed setup and assets. Before activation we'll clearly confirm any third-party service requirements, if applicable. Nothing paid will be activated without your approval.</p>
+    <a href="#" id="ctaWhatsApp" target="_blank" class="cta-btn">
+      💬 Activate For My Clinic (WhatsApp)
+    </a>
+  </div>
+
+  <script>
+    // Read and sanitize URL parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    const clinicName = (urlParams.get('clinic') || 'Focus Dental Care').trim();
+    const clinicArea = (urlParams.get('area') || 'Jubilee Hills').trim();
+    const doctorName = (urlParams.get('doctor') || 'Dr. Ajay Krishna').trim();
+
+    // Update DOM Branding
+    document.title = `${clinicName} — 24/7 Smart Patient Triage Demo`;
+    document.getElementById('navClinicTitle').textContent = clinicName;
+    document.getElementById('statusText').textContent = `${doctorName}'s 24/7 Assistant (Online)`;
+    
+    // WhatsApp CTA message
+    const waText = `Hi Astra Team, I tested the demo customized for ${clinicName} (${clinicArea}, ${doctorName}) and would like to review the ₹1,999 AI Patient Recovery & Booking Pack.`;
+    document.getElementById('ctaWhatsApp').href = `https://wa.me/?text=${encodeURIComponent(waText)}`;
+
+    let currentLang = 'en'; // 'en' or 'te'
+    let currentSelectedTreatment = '';
+
+    const content = {
+      en: {
+        greeting: `Namaskaram & Hello! 🙏 Welcome to ${clinicName}, ${clinicArea}.\n\nI am ${doctorName}'s digital clinic assistant. How can we help you achieve a confident smile today?\n\nPlease select your concern:`,
+        options: [
+          "1️⃣ Clear Invisible Aligners (No Wires)",
+          "2️⃣ Smile Makeover & Veneers",
+          "3️⃣ Dental Implants / Missing Teeth",
+          "4️⃣ Toothache / Urgent Emergency Care",
+          "5️⃣ Doctor Fee & Clinic Timings"
+        ],
+        replies: [
+          `✨ Clear Aligners give you perfectly straight teeth with ZERO visible metal wires. Easily removable for dining and photos.\n\n${doctorName} offers a 15-minute 3D Digital Smile Scan & assessment at our ${clinicArea} clinic.`,
+          `✨ A Smile Makeover uses custom porcelain veneers, composite contouring, and laser whitening to correct chipped, spaced, or discolored teeth.\n\n${doctorName} provides personalized aesthetic consultations at ${clinicName}.`,
+          `✨ Modern Dental Implants look, feel, and function exactly like natural permanent teeth with lifetime durability.\n\n${doctorName} specializes in precision implant placement at ${clinicName}, ${clinicArea}.`,
+          `🚨 We understand severe tooth pain requires urgent attention.\n\nImmediate care tip: Rinse gently with warm salt water and avoid cold liquids. Never place aspirin directly on the gums.\n\n${doctorName} provides priority emergency pain relief slots daily.`,
+          `📍 Clinic Hours at ${clinicName}, ${clinicArea}:\n• Mon - Sat: 10:00 AM – 8:30 PM\n• Sunday: 10:30 AM – 1:30 PM (Priority)\n\n${doctorName}'s consultation fee: Standard nominal review includes complete oral examination.`
+        ],
+        treatmentLabels: [
+          "Clear Invisible Aligners",
+          "Smile Makeover & Veneers",
+          "Dental Implants",
+          "Urgent Toothache / Emergency",
+          "Doctor Consultation & Timings"
+        ],
+        slotPrompt: `Which time slot works best for your consultation with ${doctorName}?`,
+        slots: [
+          "📅 Tomorrow Morning (10:30 AM – 1:00 PM)",
+          "📅 Tomorrow Evening (5:00 PM – 8:30 PM)",
+          "📅 Weekend Slot (Saturday/Sunday)"
+        ],
+        confirmLead: `🎉 Provisional Consultation Reserved at ${clinicName}!\n\nOur clinic manager will send your WhatsApp appointment confirmation within 10 minutes during clinic hours.`
+      },
+      te: {
+        greeting: `నమస్కారం! 🙏 ${clinicName} (${clinicArea}) కు స్వాగతం.\n\nనేను ${doctorName} గారి డిజిటల్ అసిస్టెంట్‌ని. మీ అందమైన చిరునవ్వు ఆరోగ్యం కోసం మేము ఎలా సహాయపడగలం?\n\nదయచేసి మీ అవసరాన్ని ఎంచుకోండి:`,
+        options: [
+          "1️⃣ క్లియర్ అలైన్ర్స్ (వైర్లు లేని పళ్ల సవరింపు)",
+          "2️⃣ స్మైల్ మేక్ఓవర్ & వైట్నింగ్",
+          "3️⃣ డెంటల్ ఇంప్లాంట్స్ (శాశ్వత కొత్త పళ్లు)",
+          "4️⃣ పంటి నొప్పి / అత్యవసర సంరక్షణ",
+          "5️⃣ డాక్టర్ ఫీజు & క్లినిక్ వేళలు"
+        ],
+        replies: [
+          `✨ క్లియర్ అలైన్ర్స్ తో ఎటువంటి మెటల్ వైర్లు లేకుండా మీ పళ్లను చక్కగా అమర్చవచ్చు. భోజనం చేసేటప్పుడు సులభంగా తీసి మళ్ళీ పెట్టుకోవచ్చు.\n\nఈ వారం ${doctorName} గారి 3D డిజిటల్ స్మైల్ స్కాన్ అందుబాటులో ఉంది.`,
+          `✨ స్మైల్ మేక్ఓవర్ తో పళ్ల మధ్య సందులు, రంగు మారిన లేదా విరిగిన పళ్లను సహజమైన అందంతో సరిచేయవచ్చు.\n\n${clinicName} లో ${doctorName} గారు ప్రత్యేక సౌందర్య చికిత్సలు అందిస్తున్నారు.`,
+          `✨ డెంటల్ ఇంప్లాంట్స్ సహజమైన పళ్లలాగే జీవితాంతం దృఢంగా ఉంటాయి.\n\n${doctorName} గారు ${clinicArea} క్లినిక్ లో అధునాతన ఇంప్లాంట్ చికిత్సలు చేస్తారు.`,
+          `🚨 తీవ్రమైన పంటి నొప్పి ఉన్నప్పుడు వెంటనే ఉపశమనం పొందడం చాలా ముఖ్యం.\n\nచిట్కా: గోరువెచ్చని ఉప్పునీటితో పుక్కిలించండి. నొప్పి ఉన్న పంటిపై మాత్రలు నేరుగా పెట్టవద్దు.\n\n${doctorName} గారు అత్యవసర కేసులకు ప్రాధాన్యత ఇస్తారు.`,
+          `📍 ${clinicName} (${clinicArea}) క్లినిక్ వేళలు:\n• సోమ - శని: ఉదయం 10:00 నుండి రాత్రి 8:30 వరకు\n• ఆదివారం: ఉదయం 10:30 నుండి మధ్యాహ్నం 1:30 వరకు\n\n${doctorName} గారి కన్సల్టేషన్ లో పూర్తి పళ్ల పరీక్ష ఉంటుంది.`
+        ],
+        treatmentLabels: [
+          "క్లియర్ అలైన్ర్స్ (Aligners)",
+          "స్మైల్ మేక్ఓవర్ (Smile Makeover)",
+          "డెంటల్ ఇంప్లాంట్స్ (Implants)",
+          "అత్యవసర పంటి నొప్పి (Emergency)",
+          "కన్సల్టేషన్ & వేళలు (Timings/Fee)"
+        ],
+        slotPrompt: `${doctorName} గారి కన్సల్టేషన్ కోసం మీకు ఏ సమయం అనుకూలంగా ఉంటుంది?`,
+        slots: [
+          "📅 రేపు ఉదయం (10:30 AM – 1:00 PM)",
+          "📅 రేపు సాయంత్రం (5:00 PM – 8:30 PM)",
+          "📅 శని/ఆదివారం (వీకెండ్ స్లాట్)"
+        ],
+        confirmLead: `🎉 ${clinicName} లో మీ అపాయింట్‌మెంట్ స్లాట్ తాత్కాలికంగా నమోదు చేయబడింది!\n\nమా క్లినిక్ మేనేజర్ 10 నిమిషాల్లో మీకు వాట్సాప్‌లో కన్ఫర్మేషన్ పంపుతారు.`
+      }
+    };
+
+    function getTime() {
+      const d = new Date();
+      return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+
+    function initChat() {
+      const chat = document.getElementById('chatBody');
+      chat.innerHTML = '';
+      currentSelectedTreatment = '';
+      const strings = content[currentLang];
+
+      const welcome = document.createElement('div');
+      welcome.className = 'message incoming';
+      welcome.innerHTML = `
+        <div>${strings.greeting.replace(/\n/g, '<br/>')}</div>
+        <div class="options-grid">
+          ${strings.options.map((opt, i) => `<button class="option-btn" onclick="selectOption(${i})">${opt}</button>`).join('')}
+        </div>
+        <span class="timestamp">${getTime()}</span>
+      `;
+      chat.appendChild(welcome);
+      chat.scrollTop = chat.scrollHeight;
+    }
+
+    function selectOption(index) {
+      const strings = content[currentLang];
+      const chat = document.getElementById('chatBody');
+      currentSelectedTreatment = strings.treatmentLabels[index];
+      
+      // User selection
+      const userMsg = document.createElement('div');
+      userMsg.className = 'message outgoing';
+      userMsg.innerHTML = `<div>${strings.options[index]}</div><span class="timestamp">${getTime()} ✓✓</span>`;
+      chat.appendChild(userMsg);
+      chat.scrollTop = chat.scrollHeight;
+
+      showTyping(true);
+
+      setTimeout(() => {
+        showTyping(false);
+        const reply = document.createElement('div');
+        reply.className = 'message incoming';
+        reply.innerHTML = `
+          <div>${strings.replies[index].replace(/\n/g, '<br/>')}</div>
+          <br/>
+          <div><strong>${strings.slotPrompt}</strong></div>
+          <div class="options-grid">
+            ${strings.slots.map((s, i) => `<button class="option-btn" onclick="selectSlot('${s}')">${s}</button>`).join('')}
+          </div>
+          <span class="timestamp">${getTime()}</span>
+        `;
+        chat.appendChild(reply);
+        chat.scrollTop = chat.scrollHeight;
+      }, 600);
+    }
+
+    function selectSlot(slot) {
+      const strings = content[currentLang];
+      const chat = document.getElementById('chatBody');
+
+      const userSlot = document.createElement('div');
+      userSlot.className = 'message outgoing';
+      userSlot.innerHTML = `<div>${slot}</div><span class="timestamp">${getTime()} ✓✓</span>`;
+      chat.appendChild(userSlot);
+      chat.scrollTop = chat.scrollHeight;
+
+      showTyping(true);
+
+      setTimeout(() => {
+        showTyping(false);
+        const confirm = document.createElement('div');
+        confirm.className = 'message incoming';
+        confirm.innerHTML = `
+          <div>${strings.confirmLead.replace(/\n/g, '<br/>')}</div>
+          <div class="lead-card">
+            <div class="lead-card-title">
+              <span>🔔 FRONT DESK ALERT</span>
+              <span style="color:#22c55e;">QUALIFIED LEAD</span>
+            </div>
+            <div><strong>Clinic:</strong> ${clinicName} (${clinicArea})</div>
+            <div><strong>Doctor:</strong> ${doctorName}</div>
+            <div><strong>Treatment:</strong> ${currentSelectedTreatment || 'Consultation'}</div>
+            <div><strong>Slot:</strong> ${slot}</div>
+            <div style="margin-top:4px; color:#38bdf8;"><strong>Action:</strong> 1-Tap Receptionist confirmation queued.</div>
+          </div>
+          <span class="timestamp">${getTime()}</span>
+        `;
+        chat.appendChild(confirm);
+        chat.scrollTop = chat.scrollHeight;
+      }, 700);
+    }
+
+    function showTyping(show) {
+      const indicator = document.getElementById('typingIndicator');
+      indicator.style.display = show ? 'block' : 'none';
+      if (show) {
+        document.getElementById('chatBody').appendChild(indicator);
+      }
+    }
+
+    function toggleLanguage() {
+      currentLang = currentLang === 'en' ? 'te' : 'en';
+      document.getElementById('langBtn').textContent = currentLang === 'en' ? 'తెలుగు / Eng' : 'English / తెలుగు';
+      initChat();
+    }
+
+    // Launch immediately
+    initChat();
+  </script>
+</body>
+</html>
