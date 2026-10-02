@@ -353,10 +353,10 @@
         <div class="avatar">🦷</div>
         <div class="clinic-info">
           <div class="clinic-title">
-            <span id="navClinicTitle">Focus Dental Care</span>
+            <span id="navClinicTitle">ASTRA Dental Care</span>
             <span class="verified-badge">✓</span>
           </div>
-          <div class="status-text" id="statusText">Dr. Ajay Krishna's 24/7 Assistant (Online)</div>
+          <div class="status-text" id="statusText">24/7 AI Clinic Assistant (Online)</div>
         </div>
         <button class="lang-toggle" onclick="toggleLanguage()" id="langBtn">తెలుగు / Eng</button>
       </div>
@@ -387,17 +387,24 @@
   <script>
     // Read and sanitize URL parameters
     const urlParams = new URLSearchParams(window.location.search);
-    const clinicName = (urlParams.get('clinic') || 'Focus Dental Care').trim();
-    const clinicArea = (urlParams.get('area') || 'Jubilee Hills').trim();
-    const doctorName = (urlParams.get('doctor') || 'Dr. Ajay Krishna').trim();
+    const hasCustomClinic = urlParams.has('clinic') && urlParams.get('clinic').trim().length > 0;
+    const clinicName = (urlParams.get('clinic') || 'ASTRA Dental Care').trim();
+    const clinicArea = (urlParams.get('area') || 'Metro Center').trim();
+    const doctorName = (urlParams.get('doctor') || 'Senior Dental Specialist').trim();
 
     // Update DOM Branding
-    document.title = `${clinicName} — 24/7 Smart Patient Triage Demo`;
+    document.title = hasCustomClinic 
+      ? `${clinicName} — 24/7 Smart Patient Triage Demo` 
+      : `ASTRA Smart Clinic — 24/7 Patient Triage & Booking Simulator`;
     document.getElementById('navClinicTitle').textContent = clinicName;
-    document.getElementById('statusText').textContent = `${doctorName}'s 24/7 Assistant (Online)`;
+    document.getElementById('statusText').textContent = hasCustomClinic
+      ? `${doctorName}'s 24/7 Assistant (Online)`
+      : `24/7 AI Clinic Assistant (Online)`;
     
     // WhatsApp CTA message
-    const waText = `Hi Astra Team, I tested the demo customized for ${clinicName} (${clinicArea}, ${doctorName}) and would like to review the ₹1,999 AI Patient Recovery & Booking Pack.`;
+    const waText = hasCustomClinic
+      ? `Hi Astra Team, I tested the demo customized for ${clinicName} (${clinicArea}, ${doctorName}) and would like to review the ₹1,999 AI Patient Recovery & Booking Pack.`
+      : `Hi Astra Team, I tested the ASTRA Smart Clinic triage demo and would like to review the ₹1,999 AI Patient Recovery & Booking Pack for my dental clinic.`;
     document.getElementById('ctaWhatsApp').href = `https://wa.me/?text=${encodeURIComponent(waText)}`;
 
     let currentLang = 'en'; // 'en' or 'te'
